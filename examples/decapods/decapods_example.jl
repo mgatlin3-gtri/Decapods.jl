@@ -37,8 +37,8 @@ global_logger(TerminalLogger())
   kᵥ::Hom(Form1(X), Form1(X))    # viscosity (usually scalar multiplication)
   kₚ::Hom(Form0(X), Form0(X))    # compressibility (usually scalar multiplication)
   m⁻¹::Hom(DualForm1(X), DualForm1(X))    # diffusivity (usually scalar multiplication)
-  L₀::Hom(Form1(X)⊗DualForm2(X), DualForm2(X))
-  L₁::Hom(Form1(X)⊗DualForm1(X), DualForm1(X))
+  L₀::Hom(Form1(X) ⊗ DualForm2(X), DualForm2(X))
+  L₁::Hom(Form1(X) ⊗ DualForm1(X), DualForm1(X))
   ∂₀::Hom(Form0(X), Form0(X)) # all_wall boundary condition
   ∂₀₋::Hom(Form0(X), Form0(X)) # left/right wall boundary condition
   ∂₀₊::Hom(Form0(X), Form0(X)) # top/bottom wall boundary condition
@@ -53,7 +53,7 @@ global_logger(TerminalLogger())
   mask₁ₑ::Hom(Form1(X), Form1(X)) # In/Out edge flow boundary condition
   mask₀ₗ::Hom(Form0(X), Form0(X)) # In/Out edge flow boundary condition
 
-	# Boundary Conditions (currently does not impact actual BCs)
+  # Boundary Conditions (currently does not impact actual BCs)
   bc₀::Hom(munit(), Form0(X))
   bc₁::Hom(munit(), Form1(X))
   bc₂::Hom(munit(), Form1(X))
@@ -66,7 +66,7 @@ end
   # Fick's first law
   ϕ == C ⋅ d₀(X) ⋅ k ⋅ ⋆₁(X)
   # Diffusion/advection equation
-  dC == ϕ ⋅ dual_d₁(X) ⋅ ⋆₀⁻¹(X) + (V⊗(C⋅⋆₀(X))) ⋅ L₀ ⋅ ⋆₀⁻¹(X) ⋅ neg₀
+  dC == ϕ ⋅ dual_d₁(X) ⋅ ⋆₀⁻¹(X) + (V ⊗ (C ⋅ ⋆₀(X))) ⋅ L₀ ⋅ ⋆₀⁻¹(X) ⋅ neg₀
   C ⋅ ∂ₜ(Form0(X)) == dC
   # Boundary condition
   C ⋅ ∂₀ == bc₀
@@ -78,7 +78,7 @@ end
   P == V ⋅ ⋆₁(X)
   dV == (V ⊗ P) ⋅ L₁ ⋅ dneg₁ ⋅ ⋆₁⁻¹(X) ⋅ mask₁ₑ + V ⋅ Δ₁(X) ⋅ kᵥ + p ⋅ d₀(X) ⋅ neg₁
   V ⋅ ∂ₜ(Form1(X)) == dV
-  dp == V ⋅ neg₁ ⋅ δ₁(X) ⋅ kₚ + (V ⊗ (p⋅⋆₀(X))) ⋅ L₀ ⋅ ⋆₀⁻¹(X) ⋅ mask₀ₗ ⋅ neg₀
+  dp == V ⋅ neg₁ ⋅ δ₁(X) ⋅ kₚ + (V ⊗ (p ⋅ ⋆₀(X))) ⋅ L₀ ⋅ ⋆₀⁻¹(X) ⋅ mask₀ₗ ⋅ neg₀
   V ⋅ ∂₁ₛ == bc₁
   dC ⋅ ∂₀ₛ == bc₃
   dp ⋅ ∂₀₋ == bc₀
@@ -87,13 +87,13 @@ end
 end
 
 diag = eq_to_diagrams(IncompressibleFlow2D)
-to_graphviz(diag ; edge_len="1.3")
+to_graphviz(diag; edge_len = "1.3")
 
-dwd =diag2dwd(diag)
-to_graphviz(dwd, orientation=LeftToRight)
+dwd = diag2dwd(diag)
+to_graphviz(dwd, orientation = LeftToRight)
 
 exp_dwd = Examples.expand_dwd(dwd, gen_dec_rules())
-to_graphviz(exp_dwd, orientation=LeftToRight)
+to_graphviz(exp_dwd, orientation = LeftToRight)
 
 # Load mesh
 
@@ -108,12 +108,12 @@ funcs = sym2func(sd)
 ∂₀ = Examples.boundary_inds(Val{0}, s)
 ∂₁ = Examples.boundary_inds(Val{1}, s)
 
-∂ₗ₀ = ∂₀[findall(p-> p[1] <= -50.0, s[∂₀, :point])]
-∂ᵣ₀ = ∂₀[findall(p-> p[1] >= 50.0, s[∂₀, :point])]
-∂ₜ₀ = ∂₀[findall(p-> p[2] >= 15.0, s[∂₀, :point])]
-∂ᵦ₀ = ∂₀[findall(p-> p[2] <= -15.0, s[∂₀, :point])]
+∂ₗ₀ = ∂₀[findall(p -> p[1] <= -50.0, s[∂₀, :point])]
+∂ᵣ₀ = ∂₀[findall(p -> p[1] >= 50.0, s[∂₀, :point])]
+∂ₜ₀ = ∂₀[findall(p -> p[2] >= 15.0, s[∂₀, :point])]
+∂ᵦ₀ = ∂₀[findall(p -> p[2] <= -15.0, s[∂₀, :point])]
 ∂ₑ₀ = vcat(∂ₗ₀, ∂ᵣ₀, ∂ₜ₀, ∂ᵦ₀)
-∂ₒ₀ = ∂₀[findall(p-> -49 <= p[1] <= 49 && -14 <= p[2] <= 14, s[∂₀, :point])]
+∂ₒ₀ = ∂₀[findall(p -> -49 <= p[1] <= 49 && -14 <= p[2] <= 14, s[∂₀, :point])]
 
 ∂ₗ₁ = Examples.bound_edges(s, ∂ₗ₀)
 ∂ᵣ₁ = Examples.bound_edges(s, ∂ᵣ₀)
@@ -132,21 +132,21 @@ funcs[:kᵥ] = Dict(:operator => kᵥ * I(ne(sd)), :type => MatrixFunc())
 funcs[:dneg₁] = Dict(:operator => -1 * I(ne(sd)), :type => MatrixFunc())
 funcs[:neg₁] = Dict(:operator => -1 * I(ne(sd)), :type => MatrixFunc())
 funcs[:neg₀] = Dict(:operator => -1 * I(nv(sd)), :type => MatrixFunc())
-funcs[:∂₀] = Dict(:operator => (x′,x) -> (x′ .= x; x′[∂ₑ₀] .= 0), :type => InPlaceFunc())
-funcs[:∂₀₋] = Dict(:operator => (x′,x) -> (x′ .= x; x′[∂ₗ₀] .= 0; x′[∂ᵣ₀] .= 0), :type => InPlaceFunc())
-funcs[:∂ₗ₀₊] = Dict(:operator => (x′,x) -> (x′ .= x; x′[∂ₗ₀₊] .= 0), :type => InPlaceFunc())
-funcs[:∂₁ₗ₊] = Dict(:operator => (x′,x) -> (x′ .= x; x′[∂ₗ₁₊] .= 0), :type => InPlaceFunc())
-funcs[:∂₀ₛ] = Dict(:operator => (x′,x) -> (x′ .= x; x′[∂ₒ₀] .= 0), :type => InPlaceFunc())
-funcs[:∂₁ₛ] = Dict(:operator => (x′,x) -> (x′ .= x; x′[∂ₒ₁] .= 0), :type => InPlaceFunc())
-funcs[:∂₁ₑ] = Dict(:operator => (x′,x) -> (x′ .= x; x′[∂ₗ₁₊] .= 0;  x′[∂ᵣ₁₊] .= 0), :type => InPlaceFunc())
-funcs[:mask₁ₑ] = Dict(:operator => (x′,x) -> (x′ .= x; x′[∂ₗ₁₊] .= 0;  x′[∂ᵣ₁₊] .= 0), :type => InPlaceFunc())
-funcs[:mask₀ₗ] = Dict(:operator => (x′,x) -> (x′ .= x; x′[∂ₗ₀₊] .= 0), :type => InPlaceFunc())
+funcs[:∂₀] = Dict(:operator => (x′, x) -> (x′ .= x; x′[∂ₑ₀] .= 0), :type => InPlaceFunc())
+funcs[:∂₀₋] = Dict(:operator => (x′, x) -> (x′ .= x; x′[∂ₗ₀] .= 0; x′[∂ᵣ₀] .= 0), :type => InPlaceFunc())
+funcs[:∂ₗ₀₊] = Dict(:operator => (x′, x) -> (x′ .= x; x′[∂ₗ₀₊] .= 0), :type => InPlaceFunc())
+funcs[:∂₁ₗ₊] = Dict(:operator => (x′, x) -> (x′ .= x; x′[∂ₗ₁₊] .= 0), :type => InPlaceFunc())
+funcs[:∂₀ₛ] = Dict(:operator => (x′, x) -> (x′ .= x; x′[∂ₒ₀] .= 0), :type => InPlaceFunc())
+funcs[:∂₁ₛ] = Dict(:operator => (x′, x) -> (x′ .= x; x′[∂ₒ₁] .= 0), :type => InPlaceFunc())
+funcs[:∂₁ₑ] = Dict(:operator => (x′, x) -> (x′ .= x; x′[∂ₗ₁₊] .= 0; x′[∂ᵣ₁₊] .= 0), :type => InPlaceFunc())
+funcs[:mask₁ₑ] = Dict(:operator => (x′, x) -> (x′ .= x; x′[∂ₗ₁₊] .= 0; x′[∂ᵣ₁₊] .= 0), :type => InPlaceFunc())
+funcs[:mask₀ₗ] = Dict(:operator => (x′, x) -> (x′ .= x; x′[∂ₗ₀₊] .= 0), :type => InPlaceFunc())
 
 # Define initial conditions
 c_objs = zeros(nv(s))
 c_objs[∂ₒ₀] .= 1e-3
-velocity(p) = [2.0 * exp(-(p[1]+50)/5),0.0,0.0]
-v = ♭(sd, DualVectorField(velocity.(sd[triangle_center(sd),:dual_point]))).data;
+velocity(p) = [2.0 * exp(-(p[1] + 50) / 5), 0.0, 0.0]
+v = ♭(sd, DualVectorField(velocity.(sd[triangle_center(sd), :dual_point]))).data;
 p = [0.0 for p in s[:point]]
 u0 = vcat(c_objs, v, p)
 GC.gc()
@@ -161,44 +161,44 @@ cont_dwd = deepcopy(exp_dwd)
 Examples.contract_matrices!(cont_dwd, funcs)
 
 # Generate simulation function
-func, _ = gen_sim(cont_dwd, funcs, sd; autodiff=false);
+func, _ = gen_sim(cont_dwd, funcs, sd; autodiff = false);
 
 # Solve problem
 prob = ODEProblem(func, u0, (0, 30))
-sol = solve(prob, Tsit5(), progress=true, progress_steps=100, p=v);
+sol = solve(prob, Tsit5(), progress = true, progress_steps = 100, p = v);
 
 # Example of debugging simulation
 
 # Key for debugging simulation
-sim_key(exp_dwd, orientation=LeftToRight)
+sim_key(exp_dwd, orientation = LeftToRight)
 
-exp_func, _ = gen_sim(exp_dwd, funcs, sd; autodiff=false);
+exp_func, _ = gen_sim(exp_dwd, funcs, sd; autodiff = false);
 
 # Show the flow of concentration as arrows
-fig, ax, ob = draw_wire(s, sd, exp_dwd, exp_func, sol(30.0), 52; axisaspect=1, xlim=(40, 50), ylim=(-5, 5), use_arrows=true, n_arrows=1000)
+fig, ax, ob = draw_wire(s, sd, exp_dwd, exp_func, sol(30.0), 52; axisaspect = 1, xlim = (40, 50), ylim = (-5, 5), use_arrows = true, n_arrows = 1000)
 fig
 save("debug_conc_flow.svg")
 
 # Generate animations of simulation
 
-times = range(0, sol.t[end], length=150)
-colors = [sol(t)#=[(end-nv(s)+1):end]=# for t in times]
+times = range(0, sol.t[end], length = 150)
+colors = [sol(t) for t in times]#=[(end-nv(s)+1):end]=#
 
-figure, axis, scatter_thing = mesh(s, color=colors[1],
-                                   colorrange=(0,1e-3))#minimum(vcat(colors...)),maximum(vcat(colors...))))
-axis.aspect = AxisAspect(100.0/30.0)
+figure, axis, scatter_thing = mesh(s, color = colors[1],
+  colorrange = (0, 1e-3))#minimum(vcat(colors...)),maximum(vcat(colors...))))
+axis.aspect = AxisAspect(100.0 / 30.0)
 framerate = 30
 
 record(figure, "conc_flow.gif", collect(1:length(collect(times))); framerate = framerate) do i
   scatter_thing.color = colors[i]
 end
 
-times = range(0, sol.t[end], length=150)
+times = range(0, sol.t[end], length = 150)
 colors = [sol(t)[(end-nv(s)+1):end] for t in times]
 
-figure, axis, scatter_thing = mesh(s, color=colors[1],
-                                   colorrange=(minimum(vcat(colors...)),maximum(vcat(colors...))))
-axis.aspect = AxisAspect(100.0/30.0)
+figure, axis, scatter_thing = mesh(s, color = colors[1],
+  colorrange = (minimum(vcat(colors...)), maximum(vcat(colors...))))
+axis.aspect = AxisAspect(100.0 / 30.0)
 framerate = 30
 
 record(figure, "press_flow.gif", collect(1:length(collect(times))); framerate = framerate) do i
