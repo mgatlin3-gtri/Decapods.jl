@@ -18,8 +18,6 @@ using CairoMakie
 using Decapods.Debug
 using DifferentialEquations
 using Logging: global_logger
-using TerminalLoggers: TerminalLogger
-global_logger(TerminalLogger())
 
 
 # Define used quantities
@@ -45,11 +43,12 @@ dwd = diag2dwd(diag)
 to_graphviz(dwd, orientation = LeftToRight)
 ##
 
-s = EmbeddedDeltaSet2D("../meshes/wire.obj")
+s = EmbeddedDeltaSet2D("../meshes/disk_0_25.stl")
 sd = dual(s);
 
 # Define non-default operators (multiplication by constants)
 c = -1 * (1.2566e-6 / 8.8542e-12)
+# c = -1 * (1.2566 / 8.8542)
 funcs = sym2func(sd)
 
 
@@ -59,8 +58,16 @@ funcs[:neg₁] = Dict(:operator => -1 * I(ne(sd)), :type => MatrixFunc())
 # Define initial conditions
 x = [p[1] for p in s[:point]];
 
+# # sinusoidal distribution for E-field
+# eField(x) = begin
+#     amp = sin((3) * π * (x[1]))
+#     amp * Point{3,Float32}(1, 0, 0)
+# end
+
+# radial distribution for E-field
+r = 10
 eField(x) = begin
-    amp = sin((3) * π * (x[1]))
+    amp = (4 * pi * r^2) * x[1] * x[1]
     amp * Point{3,Float32}(1, 0, 0)
 end
 
@@ -78,28 +85,26 @@ Examples.contract_matrices!(cont_dwd, funcs)
 func, _ = gen_sim(cont_dwd, funcs, sd; autodiff = false);
 
 # Solve problem
-prob = ODEProblem(func, u0, (0.0, 0.1));
+prob = ODEProblem(func, u0, (0.0, 0.5));
 sol = solve(prob, Tsit5());
 
 
 # Key for debugging simulation
 sim_key(dwd, orientation = LeftToRight)
-##
+
 
 exp_func, _ = gen_sim(dwd, funcs, sd; autodiff = false);
 
 # 
-fig, ax, ob = draw_wire(s, sd, dwd, exp_func, sol[50], 6)
+fig, ax, ob = draw_wire(s, sd, dwd, exp_func, sol[10], 6)
 fig
-##
+
 
 # Plot solution
 B_range = 1:ntriangles(s)
 
-fig, ax, ob = draw_wire(s, sd, dwd, exp_func, sol[50], 3; colorrange = (-1e-6, 1e-6))
+fig, ax, ob = draw_wire(s, sd, dwd, exp_func, sol[10], 3; colorrange = (-1e-1, 1e-1))
 fig
-##
-
 
 
 # Record solution
@@ -109,7 +114,7 @@ colors = [vcat([[v, v, v] for v in sol(t)[B_range]]...) for t in times]
 
 framerate = 30
 
-record(fig, "magnetic_field.gif", collect(1:length(collect(times))); framerate = framerate) do i
+record(fig, "magnetic_field-radialDist_025.gif", collect(1:length(collect(times))); framerate = framerate) do i
     ob.color = colors[i]
-    ob.colorrange = (-1e-6, 1e-6)
+    ob.colorrange = (-1e-1, 1e-1)
 end
