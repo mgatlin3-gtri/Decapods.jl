@@ -43,12 +43,12 @@ dwd = diag2dwd(diag)
 to_graphviz(dwd, orientation = LeftToRight)
 ##
 
-s = EmbeddedDeltaSet2D("../meshes/disk_0_25.stl")
+s = EmbeddedDeltaSet2D("../meshes/disk_1_0.stl")
 sd = dual(s);
 
 # Define non-default operators (multiplication by constants)
-c = -1 * (1.2566e-6 / 8.8542e-12)
-# c = -1 * (1.2566 / 8.8542)
+# c = -1 * (1.2566e-6 / 8.8542e-12)
+c = -1 * (1.2566 / 8.8542)
 funcs = sym2func(sd)
 
 
@@ -114,7 +114,7 @@ colors = [vcat([[v, v, v] for v in sol(t)[B_range]]...) for t in times]
 
 framerate = 30
 
-record(fig, "magnetic_field-radialDist_025.gif", collect(1:length(collect(times))); framerate = framerate) do i
+record(fig, "magnetic_field-radialDist_10-slow.gif", collect(1:length(collect(times))); framerate = framerate) do i
     ob.color = colors[i]
     ob.colorrange = (-1e-1, 1e-1)
 end
