@@ -47,8 +47,8 @@ s = EmbeddedDeltaSet2D("../meshes/disk_1_0.stl")
 sd = dual(s);
 
 # Define non-default operators (multiplication by constants)
-# c = -1 * (1.2566e-6 / 8.8542e-12)
-c = -1 * (1.2566 / 8.8542)
+c = -1 * (1.2566e-6 / 8.8542e-12)
+# c = -1 * (1.2566 / 8.8542)
 funcs = sym2func(sd)
 
 
@@ -67,11 +67,13 @@ x = [p[1] for p in s[:point]];
 # radial distribution for E-field
 r = 10
 eField(x) = begin
-    amp = (4 * pi * r^2) * x[1] * x[1]
+    amp = (pi * r^2) * x[1]
     amp * Point{3,Float32}(1, 0, 0)
 end
 
 E = ♭(sd, DualVectorField(eField.(sd[triangle_center(sd), :dual_point])))
+
+plot(first.(s[s[:src], :point]), E.data)
 
 B = TriForm(zeros(ntriangles(s)))
 
@@ -96,12 +98,13 @@ sim_key(dwd, orientation = LeftToRight)
 exp_func, _ = gen_sim(dwd, funcs, sd; autodiff = false);
 
 # 
-fig, ax, ob = draw_wire(s, sd, dwd, exp_func, sol[10], 6)
+fig, ax, ob = draw_wire(s, sd, dwd, exp_func, sol[10], 3)
 fig
 
 
 # Plot solution
 B_range = 1:ntriangles(s)
+E_range = 1:ne(s)
 
 fig, ax, ob = draw_wire(s, sd, dwd, exp_func, sol[10], 3; colorrange = (-1e-1, 1e-1))
 fig
@@ -109,12 +112,20 @@ fig
 
 # Record solution
 times = range(1e-4, sol.t[end], length = 500)
+
+# For visualizing E-field
+# colors = [sol(t)[E_range] for t in times]
+
+# For visualizing B-field
 colors = [vcat([[v, v, v] for v in sol(t)[B_range]]...) for t in times]
 
+colorrange = maximum(vcat(colors...))
 
 framerate = 30
 
-record(fig, "magnetic_field-radialDist_10-slow.gif", collect(1:length(collect(times))); framerate = framerate) do i
+colorrange = (-1 * maximum(vcat(colors...)), maximum(vcat(colors...)))
+
+record(fig, "electric_field-radialDist_10.gif", collect(1:length(collect(times))); framerate = framerate) do i
     ob.color = colors[i]
-    ob.colorrange = (-1e-1, 1e-1)
+    ob.colorrange = (-1 * maximum(vcat(colors...)), maximum(vcat(colors...)))
 end
