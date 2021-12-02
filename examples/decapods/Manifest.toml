@@ -310,7 +310,7 @@ uuid = "ade2ca70-3891-5945-98fb-dc099432e06a"
 
 [[Decapods]]
 deps = ["AlgebraicPetri", "Catlab", "CombinatorialSpaces", "GeometryBasics", "LinearAlgebra", "PreallocationTools", "Requires"]
-git-tree-sha1 = "67ef7ababc10ec06778eb094aedf75124672d0af"
+git-tree-sha1 = "06b3e7583609b058327e3af7804be0282d1419ea"
 repo-rev = "deca_refactor"
 repo-url = "https://github.com/AlgebraicJulia/Decapods.jl.git"
 uuid = "679ab3ea-c928-4fe6-8d59-fd451142d391"
