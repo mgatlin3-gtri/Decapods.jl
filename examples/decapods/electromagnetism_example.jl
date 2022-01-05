@@ -59,14 +59,14 @@ dwd = diag2dwd(diag)
 to_graphviz(dwd, orientation = LeftToRight)
 
 # s = EmbeddedDeltaSet2D("../meshes/pipe_fine.stl")
-s = EmbeddedDeltaSet2D("../meshes/disk_0_50.stl")
+s = EmbeddedDeltaSet2D("../meshes/disk_1_0.stl")
 orient_component!(s, 1, false)
 s[:point] .= s[:point] ./ 10
 sd = dual(s, subdiv = DiscreteExteriorCalculus.Barycenter());
 
 # Define non-default operators (multiplication by constants)
 # c = -1 * (1.2566e-6 / 8.8542e-12)
-c₀ = 10
+c₀ = 30
 
 funcs = sym2func(sd)
 funcs[:c₀] = Dict(:operator => c₀ * I(ntriangles(s)), :type => MatrixFunc())
@@ -106,9 +106,9 @@ B = [bField(sd[sd[t, :tri_center], :dual_point]) for t = 1:ntriangles(s)]
 
 # Generate leapfrog simulation
 f1, f2, dwd1, dwd2 = gen_leapfrog(diag, funcs, sd, [:B, :E]);
-tspan = (0.0, 2.0)
+tspan = (0.0, 5.0)
 dyn_prob = DynamicalODEProblem(f1, f2, B, EF, tspan)
-sol = solve(dyn_prob, VerletLeapfrog(); dt = 0.001, progress = true, progress_steps = 100);
+sol = solve(dyn_prob, VerletLeapfrog(); dt = 0.0001, progress = true, progress_steps = 100);
 
 exp_func, _ = gen_sim(dwd, funcs, sd; autodiff = false);
 
@@ -118,6 +118,7 @@ sim_key(dwd, orientation = LeftToRight)
 
 fig, ax, ob = draw_wire(s, sd, dwd, exp_func, sol[end-1], 3)
 fig
+
 
 
 # Plot solution
@@ -147,7 +148,7 @@ fig
 
 
 tn = Node(0.6)
-t = 0.75
+t = 1.1
 s2 = deepcopy(s)
 # f(t) = begin
 val = zeros(nv(s))
@@ -165,6 +166,8 @@ s2[:point] .= new_points
 # end
 limits = FRect3D(Vec3f0(-3.0, -3.0, -3.0), Vec3f0(3.0, 3.0, 3.0))
 fig, ax, ob = wireframe(s2, limits = limits)
+fig
+# save("disk_1_0-sim.png", fig)
 # fig, ax, ob = wireframe(lift(t -> f(t), tn); limits = limits)
 # i_range = range(0, 1.0, length = 10)
 
@@ -175,16 +178,24 @@ fig, ax, ob = wireframe(s2, limits = limits)
 # end
 
 # Plot the pointwise difference between the exact and simulated results
-times = range(0, sol.t[end], length = 100)
-errors = [(sol(t)[B_range] .- [exactB(p[1], p[2], t; ω₀ = 5.5201, ϕ = 0, c = c₀)[1] for p in sd[triangle_center(sd), :dual_point]]) for t in times]
-# @show minimum(vcat(errors...))
-# @show maximum(vcat(errors...))
-r_max = maximum(abs.(errors[end]))
-fig, ax, ob = mesh(s, color = errors[1],
-    colorrange = (-r_max, r_max),
-    colormap = :bluesreds)
-ax.aspect = AxisAspect(1.0)
-framerate = 30
-record(fig, "error_EM.gif", collect(1:length(collect(times))); framerate = framerate) do i
-    ob.color = errors[i]
-end
+# times = range(0, sol.t[end], length = 100)
+# errors = [(sol(t)[B_range] .- [exactB(p[1], p[2], t; ω₀ = 5.5201, ϕ = 0, c = c₀)[1] for p in sd[triangle_center(sd), :dual_point]]) for t in times]
+
+# r_max = maximum(abs.(errors[end]))
+# colors = [vcat([[v, v, v] for v in errors[i]]...) for i in 1:length(errors)]
+# # fig, ax, ob = draw_wire(s, sd,dwd, exp_func, errors[1], 3;
+# #     color = colors[1],
+# #     colorrange = (-r_max, r_max),
+# #     colormap = :bluesreds)
+
+# # fig, ax, ob = mesh(s, color = errors[1],
+
+# ax.aspect = AxisAspect(1.0)
+# r_max = maximum(abs.(errors[end]))
+# colors = [vcat([[v, v, v] for v in errors[i]]...) for i = 1:length(errors)]
+# framerate = 30
+# record(fig, "error_EM.gif", collect(1:length(collect(times))); framerate = framerate) do i
+#     ob.color = colors[i]
+#     ob.colorrange = (-r_max, r_max)
+#     ob.colormap = :bluesreds
+# end
