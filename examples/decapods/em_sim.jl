@@ -73,7 +73,6 @@ exactB(x, y, t; ω₀ = 0, ϕ = 0, a_star = 1, c = 0, I₀ = 0.1) =
     [1 / c * (1 * pi / 2) * I₀ * ω₀ * a_star * bessely0(ω₀ * a_star) * besselj0(ω₀ * sqrt(x^2 + y^2) / c) * sin(ω₀ * t + ϕ)]
 
 
-
 # Initial conditions
 
 eField(v) = begin
@@ -106,7 +105,7 @@ sol = solve(dyn_prob, VerletLeapfrog(); dt = 0.001, progress = true, progress_st
 to_graphviz(dwd2, orientation = LeftToRight)
 
 # Key for debugging simulation
-sim_key(dwd, orientation = LeftToRight)
+# sim_key(dwd, orientation = LeftToRight)
 
 exp_func, _ = gen_sim(dwd, funcs, sd; autodiff = false);
 
@@ -115,7 +114,7 @@ ob.color = vcat([[v, v, v] for v in sol(2.0)[1:ntriangles(s)]]...)
 fig
 save("em_res.png", fig)
 
-# Record solution
+# Record exact solution
 times = range(1e-4, sol.t[end], length = 300)
 colors = [vcat([[v, v, v] for v in [exactB(v[1], v[2], t; ω₀ = 5.5201, ϕ = 0, c = c₀)[1] for v in sd[sd[:tri_center], :dual_point]]]...) for t in times]
 colorrange = maximum(vcat(colors...))
@@ -127,7 +126,7 @@ record(fig, "magnetic_field-disk-exact.gif", collect(1:length(collect(times))); 
     ob.colorrange = (-0.3, 0.3)
 end
 
-# Record solution
+# Record simulated solution
 times = range(1e-4, sol.t[end], length = 300)
 colors = [vcat([[v, v, v] for v in sol(t)[1:ntriangles(s)]]...) for t in times]
 colorrange = maximum(vcat(colors...))
@@ -139,13 +138,28 @@ record(fig, "magnetic_field-disk.gif", collect(1:length(collect(times))); framer
     ob.colorrange = (-0.3, 0.3)
 end
 
-# Plot the pointwise difference between the exact and simulated results
-times = range(0, sol.t[end], length = 100)
-errors = [(sol(t)[B_range] .- [exactB(p[1], p[2], t; ω₀ = 5.5201, ϕ = 0, c = c₀)[1] for p in sd[triangle_center(sd), :dual_point]]) for t in times]
+# Plot the difference between the exact and simulated results
+
+# todo: relative = |exact - sim|/|exact| and absolute error: |exact - sim|
+
+# absolute:
+times = range(1e-4, sol.t[end], length = 300)
+errors = [sol(t)[1:ntriangles(s)] .- [exactB(p[1], p[2], t; ω₀ = 5.5201, ϕ = 0, c = c₀)[1] for p in sd[sd[:tri_center], :dual_point]] for t in times]
+print(errors[1])
 
 r_max = maximum(abs.(errors[end]))
-colors = [vcat([[v, v, v] for v in errors[i]]...) for i in 1:length(errors)]
-# fig, ax, ob = draw_wire(s, sd,dwd, exp_func, errors[1], 3;
-#     color = colors[1],
-#     colorrange = (-r_max, r_max),
-#     colormap = :bluesreds)
+fig, ax, ob = draw_wire(s, sd, dwd, exp_func, sol(0.1), 3)
+ob.color .= [vcat([[v, v, v] for v in errors[i]]...) for i in errors]
+# ob.color = [vcat([[v, v, v] for v in errors[i]]...) for i in 1:length(errors)]
+ob.colorrange = (-r_max, r_max)
+ob.colormap = :bluesreds
+fig
+
+r_max = maximum(abs.(errors[end]))
+colors = [vcat([[v, v, v] for v in errors[i]]...)]
+framerate = 30
+record(fig, "error_EM.gif", collect(1:length(collect(times))); framerate = framerate) do i
+    ob.color = colors[i]
+    ob.colorrange = (-r_max, r_max)
+    ob.colormap = :bluesreds
+end
